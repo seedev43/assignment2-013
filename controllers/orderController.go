@@ -1,4 +1,4 @@
-package handlers
+package controllers
 
 import (
 	"assignment-2/database"
@@ -17,7 +17,9 @@ func CreateOrder(ctx *gin.Context) {
 
 	// Bind data dari permintaan ke variabel newOrder
 	if err := ctx.ShouldBindJSON(&newOrder); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
@@ -28,12 +30,16 @@ func CreateOrder(ctx *gin.Context) {
 	database.DB.Model(&models.Item{}).Where("item_code = ?", itemCode).Count(&count)
 
 	if count > 0 {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "item_code sudah ada di database"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "item_code sudah ada di database",
+		})
 		return
 	}
 	// Simpan order ke dalam database
 	if err := database.DB.Create(&newOrder).Error; err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
