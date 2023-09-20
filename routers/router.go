@@ -11,6 +11,7 @@ func SetupRouter() *gin.Engine {
 
 	router.GET("/", controllers.Home)
 	router.POST("/order", controllers.CreateOrder)
+	router.GET("/orders", controllers.GetOrders)
 
 	return router
 }

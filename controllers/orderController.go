@@ -3,6 +3,7 @@ package controllers
 import (
 	"assignment-2/database"
 	"assignment-2/models"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -45,4 +46,16 @@ func CreateOrder(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusAccepted, newOrder)
 
+}
+
+func GetOrders(ctx *gin.Context) {
+	var taroh []models.Order
+
+	err := database.DB.Preload("Items").Find(&taroh).Error
+	if err != nil {
+		fmt.Println(err)
+	}
+	ctx.JSON(http.StatusAccepted, gin.H{
+		"Data": taroh,
+	})
 }

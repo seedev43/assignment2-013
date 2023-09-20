@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	PORT := ":8080"
+	PORT := ":3030"
 
 	_, err := database.InitDB()
 
