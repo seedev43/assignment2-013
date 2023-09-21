@@ -6,13 +6,16 @@ import (
 )
 
 func main() {
-	PORT := ":3030"
+	PORT := ":8080"
 
 	_, err := database.InitDB()
 
 	if err != nil {
 		panic(err)
 	}
+
+	// migrate database
+	// database.Migrate()
 
 	routers.SetupRouter().Run(PORT)
 
