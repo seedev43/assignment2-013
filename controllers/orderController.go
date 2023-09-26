@@ -145,7 +145,7 @@ func DeleteOrder(ctx *gin.Context) {
 	}
 
 	// Hapus order berdasarkan ID
-	if err := database.DB.Where("id = ?", orderID).Delete(&models.Order{}).Error; err != nil {
+	if err := database.DB.Delete(&models.Order{}, orderID).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
