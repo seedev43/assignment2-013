@@ -15,7 +15,7 @@ func main() {
 	}
 
 	// migrate database
-	// database.Migrate()
+	database.Migrate()
 
 	routers.SetupRouter().Run(PORT)
 

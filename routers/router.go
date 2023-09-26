@@ -14,6 +14,7 @@ func SetupRouter() *gin.Engine {
 	router.GET("/orders", controllers.GetOrders)
 	router.GET("/order/:id", controllers.GetOrderById)
 	router.PUT("/order/:id", controllers.UpdateOrder)
+	router.DELETE("/order/:id", controllers.DeleteOrder)
 
 	return router
 }

@@ -4,6 +4,7 @@ import (
 	"assignment-2/database"
 	"assignment-2/models"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,51 +19,45 @@ func CreateOrder(ctx *gin.Context) {
 	// Bind data dari permintaan ke variabel newOrder
 	if err := ctx.ShouldBindJSON(&newOrder); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"msg":     "something error",
-			"error":   err.Error(),
+			"error": err.Error(),
 		})
 		return
 	}
 
 	// Periksa apakah itemCode ada
-	if len(newOrder.Items) == 0 || newOrder.Items[0].ItemCode == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"msg":     "itemCode is required",
-			"error":   "itemCode is empty or missing",
-		})
-		return
-	}
+	// if len(newOrder.Items) == 0 || newOrder.Items[0].ItemCode == "" {
+	// 	ctx.JSON(http.StatusBadRequest, gin.H{
+	// 		"success": false,
+	// 		"msg":     "itemCode is required",
+	// 		"error":   "itemCode is empty or missing",
+	// 	})
+	// 	return
+	// }
 
-	// Ambil item_code dari permintaan client
-	itemCode := newOrder.Items[0].ItemCode
+	// // Ambil item_code dari permintaan client
+	// itemCode := newOrder.Items[0].ItemCode
 
-	var count int64
-	database.DB.Model(&models.Item{}).Where("item_code = ?", itemCode).Count(&count)
+	// var count int64
+	// database.DB.Model(&models.Item{}).Where("item_code = ?", itemCode).Count(&count)
 
-	if count > 0 {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"msg":     "duplicate item_code",
-			"error":   "item_code sudah ada di database",
-		})
-		return
-	}
+	// if count > 0 {
+	// 	ctx.JSON(http.StatusBadRequest, gin.H{
+	// 		"success": false,
+	// 		"msg":     "duplicate item_code",
+	// 		"error":   "item_code sudah ada di database",
+	// 	})
+	// 	return
+	// }
 	// Simpan order ke dalam database
 	if err := database.DB.Create(&newOrder).Error; err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"msg":     "failed insert data",
-			"error":   err.Error(),
+			"error": err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"msg":     "success insert data",
-		"data":    newOrder,
+		"data": newOrder,
 	})
 
 }
@@ -72,52 +67,51 @@ func GetOrders(ctx *gin.Context) {
 
 	if err := database.DB.Preload("Items").Find(&getOrders).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"msg":     "failed get all data",
-			"error":   err.Error(),
+			"error": err.Error(),
 		})
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"msg":     "success get all data",
-		"data":    getOrders,
+		"data": getOrders,
 	})
 }
 
 func GetOrderById(ctx *gin.Context) {
 	var orderItem models.Order
-	orderId := ctx.Param("id")
+	orderIDStr := ctx.Param("id")
+	orderID, err := strconv.Atoi(orderIDStr)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	// ambil data dari database dengan id dari request param client
-	if err := database.DB.Preload("Items").First(&orderItem, "id = ?", orderId).Error; err != nil {
+	if err := database.DB.Preload("Items").First(&orderItem, "id = ?", orderID).Error; err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"msg":     "failed get data",
-			"error":   "data with id " + orderId + " not found",
+			"error": err.Error(),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"msg":     "success get data",
-		"data":    orderItem,
+		"data": orderItem,
 	})
 }
 
 func UpdateOrder(ctx *gin.Context) {
-	orderID := ctx.Param("id")
+	orderIDStr := ctx.Param("id")
+	orderID, _ := strconv.Atoi(orderIDStr)
 
 	// Ambil data order yang akan diperbarui
 	var order models.Order
 	if err := database.DB.Preload("Items").First(&order, "id = ?", orderID).Error; err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Bind data dari permintaan ke variabel order
 	if err := ctx.ShouldBindJSON(&order); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -139,4 +133,22 @@ func UpdateOrder(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, order)
+}
+
+func DeleteOrder(ctx *gin.Context) {
+	orderIDStr := ctx.Param("id")
+	orderID, err := strconv.Atoi(orderIDStr)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Hapus order berdasarkan ID
+	if err := database.DB.Where("id = ?", orderID).Delete(&models.Order{}).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Order deleted successfully"})
 }
