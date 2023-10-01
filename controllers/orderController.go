@@ -24,30 +24,9 @@ func CreateOrder(ctx *gin.Context) {
 		return
 	}
 
-	// Periksa apakah itemCode ada
-	// if len(newOrder.Items) == 0 || newOrder.Items[0].ItemCode == "" {
-	// 	ctx.JSON(http.StatusBadRequest, gin.H{
-	// 		"success": false,
-	// 		"msg":     "itemCode is required",
-	// 		"error":   "itemCode is empty or missing",
-	// 	})
-	// 	return
-	// }
+	
 
-	// // Ambil item_code dari permintaan client
-	// itemCode := newOrder.Items[0].ItemCode
-
-	// var count int64
-	// database.DB.Model(&models.Item{}).Where("item_code = ?", itemCode).Count(&count)
-
-	// if count > 0 {
-	// 	ctx.JSON(http.StatusBadRequest, gin.H{
-	// 		"success": false,
-	// 		"msg":     "duplicate item_code",
-	// 		"error":   "item_code sudah ada di database",
-	// 	})
-	// 	return
-	// }
+		
 	// Simpan order ke dalam database
 	if err := database.DB.Create(&newOrder).Error; err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
